@@ -34,12 +34,19 @@
             font-size: 20px;
             margin-top: 20px;
         }
+        #gridSize {
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div id="startScreen" class="overlay">
         <h1>Willkommen zum Ausweich-Spiel</h1>
         <button onclick="startGame()">Start</button>
+        <div>
+            <label for="gridSize">Rastergröße:</label>
+            <input type="number" id="gridSize" value="20" min="10" step="10">
+        </div>
         <div id="highscoreBoard" class="hidden">
             <h2>Top 10 Highscores</h2>
             <ol id="highscoreList"></ol>
@@ -69,6 +76,7 @@
         let score = 0;
         let gameover = false;
         let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+        let gridSize = parseInt(document.getElementById('gridSize').value) || 20;
 
         function createBall() {
             const radius = 20; // Verdopplung des Radius der Bälle
@@ -120,13 +128,14 @@
         function drawGrid() {
             ctx.strokeStyle = "white";
             ctx.lineWidth = 0.5;
-            for (let i = 0; i < canvas.width; i += 20) {
+            gridSize = parseInt(document.getElementById('gridSize').value) || 20;
+            for (let i = 0; i < canvas.width; i += gridSize) {
                 ctx.beginPath();
                 ctx.moveTo(i, 0);
                 ctx.lineTo(i, canvas.height);
                 ctx.stroke();
             }
-            for (let i = 0; i < canvas.height; i += 20) {
+            for (let i = 0; i < canvas.height; i += gridSize) {
                 ctx.beginPath();
                 ctx.moveTo(0, i);
                 ctx.lineTo(canvas.width, i);
@@ -201,6 +210,12 @@
             if (e.key === "d" || e.key === "D") {
                 player.moveRight = true;
             }
+            if (e.key === "ArrowLeft") {
+                player.moveLeft = true;
+            }
+            if (e.key === "ArrowRight") {
+                player.moveRight = true;
+            }
         });
 
         document.addEventListener("keyup", function (e) {
@@ -208,6 +223,12 @@
                 player.moveLeft = false;
             }
             if (e.key === "d" || e.key === "D") {
+                player.moveRight = false;
+            }
+            if (e.key === "ArrowLeft") {
+                player.moveLeft = false;
+            }
+            if (e.key === "ArrowRight") {
                 player.moveRight = false;
             }
         });
@@ -229,6 +250,11 @@
 
         // Initiale Anzeige der Highscores
         displayHighscores();
+
+        // Rastergröße aktualisieren
+        document.getElementById('gridSize').addEventListener('change', () => {
+            drawGrid(); // Raster neu zeichnen
+        });
     </script>
 </body>
 </html>
