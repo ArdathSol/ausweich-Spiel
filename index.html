@@ -10,23 +10,49 @@
             padding: 0;
             overflow: hidden;
             background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
             margin: 0 auto;
             background: black;
             border: 1px solid white;
-            background-size: cover;
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        .hidden {
+            display: none;
+        }
+        .highscore {
+            font-size: 20px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <div id="startScreen" class="overlay">
+        <h1>Willkommen zum Ausweich-Spiel</h1>
+        <button onclick="startGame()">Start</button>
+        <div id="highscoreBoard" class="hidden">
+            <h2>Top 10 Highscores</h2>
+            <ol id="highscoreList"></ol>
+            <input type="text" id="playerName" placeholder="Name eingeben" />
+            <button onclick="saveHighscore()">Highscore speichern</button>
+        </div>
+    </div>
+    <canvas id="gameCanvas" class="hidden"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth / 2;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth / 2 - 50;  // Verkleinertes Spielfeld
+        canvas.height = window.innerHeight - 100;  // Verkleinertes Spielfeld
 
         const player = {
             x: canvas.width / 2 - 15,
@@ -42,9 +68,10 @@
         let balls = [];
         let score = 0;
         let gameover = false;
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 
         function createBall() {
-            const radius = 10;
+            const radius = 20; // Verdopplung des Radius der Bälle
             const x = Math.random() * (canvas.width - radius * 2) + radius;
             const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
             balls.push({ x, y: 0, radius, color, speed: 2 + Math.random() * 3 });
@@ -115,8 +142,9 @@
 
         function gameLoop() {
             if (gameover) {
-                alert("Game Over! Your score: " + score);
-                document.location.reload();
+                document.getElementById('gameCanvas').classList.add('hidden');
+                document.getElementById('startScreen').classList.remove('hidden');
+                document.getElementById('highscoreBoard').classList.remove('hidden');
                 return;
             }
 
@@ -132,8 +160,39 @@
             requestAnimationFrame(gameLoop);
         }
 
-        setInterval(createBall, 1000); // Bälle jede Sekunde erzeugen
-        requestAnimationFrame(gameLoop);
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameCanvas').classList.remove('hidden');
+            document.getElementById('highscoreBoard').classList.add('hidden');
+            balls = [];
+            score = 0;
+            gameover = false;
+            setInterval(createBall, 1000); // Bälle jede Sekunde erzeugen
+            requestAnimationFrame(gameLoop);
+        }
+
+        function saveHighscore() {
+            const name = document.getElementById('playerName').value;
+            if (!name) {
+                alert("Bitte gib deinen Namen ein!");
+                return;
+            }
+            highScores.push({ name, score });
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 10); // Nur die Top 10 speichern
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+            displayHighscores();
+        }
+
+        function displayHighscores() {
+            const highscoreList = document.getElementById('highscoreList');
+            highscoreList.innerHTML = '';
+            highScores.forEach(entry => {
+                const li = document.createElement('li');
+                li.textContent = `${entry.name}: ${entry.score}`;
+                highscoreList.appendChild(li);
+            });
+        }
 
         document.addEventListener("keydown", function (e) {
             if (e.key === "a" || e.key === "A") {
@@ -167,6 +226,9 @@
             player.moveLeft = false;
             player.moveRight = false;
         });
+
+        // Initiale Anzeige der Highscores
+        displayHighscores();
     </script>
 </body>
 </html>
