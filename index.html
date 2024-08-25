@@ -12,10 +12,10 @@
             background-color: black;
             color: white;
             font-family: Arial, sans-serif;
+            height: 100%;
         }
         canvas {
             display: block;
-            margin: 0 auto;
             background: black;
             border: 1px solid white;
         }
@@ -59,6 +59,14 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
+        // Setze die Canvas-Größe auf die Bildschirmgröße
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Initiale Größe setzen
+
         let player = {
             x: 0,
             y: 0,
@@ -80,6 +88,8 @@
             const newSize = Math.min(gridSize - 2, 30); // Spielergröße an Rastergröße anpassen
             player.width = newSize;
             player.height = newSize;
+            player.x = (canvas.width - player.width) / 2; // Spieler zentrieren
+            player.y = canvas.height - player.height - 10; // Spieler am unteren Rand positionieren
         }
 
         function createBall() {
