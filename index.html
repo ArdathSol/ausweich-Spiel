@@ -58,12 +58,10 @@
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth / 2 - 50;  // Verkleinertes Spielfeld
-        canvas.height = window.innerHeight - 100;  // Verkleinertes Spielfeld
 
-        const player = {
-            x: canvas.width / 2 - 15,
-            y: canvas.height - 30,
+        let player = {
+            x: 0,
+            y: 0,
             width: 30,
             height: 30,
             color: "blue",
@@ -78,8 +76,14 @@
         let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
         let gridSize = parseInt(document.getElementById('gridSize').value) || 20;
 
+        function updatePlayerSize() {
+            const newSize = Math.min(gridSize - 2, 30); // Spielergröße an Rastergröße anpassen
+            player.width = newSize;
+            player.height = newSize;
+        }
+
         function createBall() {
-            const radius = 20; // Verdopplung des Radius der Bälle
+            const radius = gridSize; // Bälle doppelt so groß wie Rastergröße
             const x = Math.random() * (canvas.width - radius * 2) + radius;
             const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
             balls.push({ x, y: 0, radius, color, speed: 2 + Math.random() * 3 });
@@ -87,8 +91,7 @@
 
         function drawPlayer() {
             ctx.fillStyle = player.color;
-            ctx.font = "30px Arial";
-            ctx.fillText("A", player.x, player.y + player.height);
+            ctx.fillRect(player.x, player.y, player.width, player.height);
         }
 
         function drawBall(ball) {
@@ -170,6 +173,8 @@
         }
 
         function startGame() {
+            gridSize = parseInt(document.getElementById('gridSize').value) || 20;
+            updatePlayerSize();
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('gameCanvas').classList.remove('hidden');
             document.getElementById('highscoreBoard').classList.add('hidden');
@@ -186,7 +191,7 @@
                 alert("Bitte gib deinen Namen ein!");
                 return;
             }
-            highScores.push({ name, score });
+            highScores.push({ name, score, gridSize }); // Rastergröße speichern
             highScores.sort((a, b) => b.score - a.score);
             highScores = highScores.slice(0, 10); // Nur die Top 10 speichern
             localStorage.setItem('highScores', JSON.stringify(highScores));
@@ -198,37 +203,25 @@
             highscoreList.innerHTML = '';
             highScores.forEach(entry => {
                 const li = document.createElement('li');
-                li.textContent = `${entry.name}: ${entry.score}`;
+                li.textContent = `${entry.name}: ${entry.score} (Rastergröße: ${entry.gridSize})`;
                 highscoreList.appendChild(li);
             });
         }
 
         document.addEventListener("keydown", function (e) {
-            if (e.key === "a" || e.key === "A") {
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
                 player.moveLeft = true;
             }
-            if (e.key === "d" || e.key === "D") {
-                player.moveRight = true;
-            }
-            if (e.key === "ArrowLeft") {
-                player.moveLeft = true;
-            }
-            if (e.key === "ArrowRight") {
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") {
                 player.moveRight = true;
             }
         });
 
         document.addEventListener("keyup", function (e) {
-            if (e.key === "a" || e.key === "A") {
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
                 player.moveLeft = false;
             }
-            if (e.key === "d" || e.key === "D") {
-                player.moveRight = false;
-            }
-            if (e.key === "ArrowLeft") {
-                player.moveLeft = false;
-            }
-            if (e.key === "ArrowRight") {
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") {
                 player.moveRight = false;
             }
         });
@@ -254,6 +247,7 @@
         // Rastergröße aktualisieren
         document.getElementById('gridSize').addEventListener('change', () => {
             drawGrid(); // Raster neu zeichnen
+            updatePlayerSize(); // Spielergröße anpassen
         });
     </script>
 </body>
